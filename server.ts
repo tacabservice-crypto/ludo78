@@ -36,7 +36,6 @@ import { GameState as GameStateModel } from './src/models/GameState';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import fs from 'fs';
 import { createServer as createViteServer, ViteDevServer } from 'vite';
 import sequelize from './src/sequelize';
 
@@ -72,6 +71,7 @@ import {
   createRoom,
   addPlayerToRoom,
   getRoomById,
+  getActiveRooms,
   removePlayerFromRoom,
   startGame,
 } from './src/database';
@@ -264,21 +264,12 @@ function loadStore() {
 
 // Slower, awaited version for critical updates
 async function saveStoreAndWait(): Promise<{ success: boolean; error?: string }> {
-    try {
-      // In a function environment, skip writing to the local filesystem.
-      if (!(process.env.FUNCTION_TARGET || process.env.FUNCTIONS_EMULATOR)) {
-        fs.writeFileSync(DB_FILE, JSON.stringify(store, null, 2), 'utf8');
-      }
-      // Since Firestore is removed, we can just return success.
-      return { success: true };
-    } catch (error: any) {
-      // This will catch errors from writeFileSync.
-      console.error('Failed to write database to disk.', error);
-      return { success: false, error: error.message };
-    }
+    // This function is now deprecated as we are moving to a fully database-driven approach.
+    // It will be removed in a future refactoring.
+    return { success: true };
 }
 
-// loadStore(); // We will rely on the database now, but keep this for reference.
+// // loadStore(); // DEPRECATED: We now rely on the SQL database as the source of truth.
 
 // Sync all models with the database
 (async () => {
@@ -357,8 +348,8 @@ data: ${JSON.stringify(data)}
 }
 
 // Send update to all players AND SPECTATORS in a room
-function broadcastToRoom(roomId: string, eventName: string, data: any) {
-  const room = store.rooms[roomId];
+async function broadcastToRoom(roomId: string, eventName: string, data: any) {
+  const room = await getRoomById(roomId);
   if (!room) return;
 
   let payload = { ...data };
@@ -366,21 +357,18 @@ function broadcastToRoom(roomId: string, eventName: string, data: any) {
   // If this is a game update, dynamically attach the list of current spectators.
   if (eventName === 'game_update' || eventName === 'timer_tick') {
     const spectatorClients = activeClients.filter(c => c.spectatingRoomId === roomId);
-    const spectatorsInfo = spectatorClients
-      .map(c => {
-        const user = store.users[c.userId];
-        // Only include if user profile exists
-        if (user) {
-          return {
-            id: user.id,
-            username: user.username,
-            avatar: user.avatar,
-            createdAt: user.createdAt,
-          };
-        }
-        return null;
-      })
-      .filter(Boolean);
+    
+    const spectatorUserIds = spectatorClients.map(c => c.userId);
+    const spectators = await Promise.all(spectatorUserIds.map(id => getUserById(id)));
+    
+    const spectatorsInfo = spectators
+      .filter(Boolean) // Filter out nulls
+      .map(user => ({
+        id: user!.id,
+        username: user!.username,
+        avatar: user!.avatar,
+        createdAt: user!.createdAt,
+      }));
     
     payload.spectators = spectatorsInfo;
   }
@@ -402,15 +390,15 @@ function broadcastToRoom(roomId: string, eventName: string, data: any) {
 }
 
 // Global user update broadcast (for dashboard balance/profile syncing)
-function broadcastUserUpdate(userId: string) {
-  const user = store.users[userId];
+async function broadcastUserUpdate(userId: string) {
+  const user = await getUserById(userId);
   if (user) {
     sendEventToUser(userId, 'user_update', user);
   }
 }
 
 // Remove disconnected client
-function removeSSEClient(res: any) {
+async function removeSSEClient(res: any) {
   const client = activeClients.find(c => c.res === res);
   activeClients = activeClients.filter(c => c.res !== res);
   if (client) {
@@ -426,7 +414,7 @@ function removeSSEClient(res: any) {
         if (player) {
           player.status = 'offline';
           addLog(activeRoom, `🔌 ${player.username} has disconnected. They have time to reconnect before being forfeited.`);
-          broadcastToRoom(activeRoom.id, 'game_update', activeRoom);
+          await broadcastToRoom(activeRoom.id, 'game_update', activeRoom);
           (async () => {
             await saveStoreAndWait();
           })();
@@ -598,9 +586,9 @@ function executeBotTurnIfActive(room: GameRoom) {
       if (validTokens.length === 0) {
         // No moves possible, pass turn
         addLog(room, `🤖 Bot ${activePlayer.username} has no valid moves.`);
-        setTimeout(() => {
+        setTimeout(async () => {
           advanceTurn(room);
-          broadcastToRoom(room.id, 'game_update', room);
+          await broadcastToRoom(room.id, 'game_update', room);
           executeBotTurnIfActive(room);
         }, 500);
       } else {
@@ -637,7 +625,7 @@ function executeBotTurnIfActive(room: GameRoom) {
         // Apply movement
         setTimeout(async () => {
           await moveTokenLogic(room, selectedToken.id, d);
-          broadcastToRoom(room.id, 'game_update', room);
+          await broadcastToRoom(room.id, 'game_update', room);
           executeBotTurnIfActive(room);
         }, 500);
       }
@@ -684,7 +672,7 @@ async function handleInactivityForfeit(room: GameRoom, inactivePlayer: LudoPlaye
           winnerProfile.balance += payoutAmount;
           winnerProfile.winCount += 1;
           await addTransaction(winner.userId, 'win_payout', payoutAmount, room.id, `Win by opponent inactivity forfeit (Rake: $${rakeAmount.toFixed(2)}).`);
-          broadcastUserUpdate(winner.userId);
+          await await broadcastUserUpdate(winner.userId);
 
           store.houseRevenue += rakeAmount;
           await addTransaction(
@@ -701,7 +689,7 @@ async function handleInactivityForfeit(room: GameRoom, inactivePlayer: LudoPlaye
   }
 
   await saveStoreAndWait();
-  broadcastToRoom(room.id, 'game_update', room);
+  await broadcastToRoom(room.id, 'game_update', room);
 }
 
 // Heartbeat interval to prevent proxy disconnects by keeping SSE stream active
@@ -796,7 +784,7 @@ const authMiddleware = async (req: any, res: any, next: () => void) => {
         return res.status(401).json({ error: 'Unauthorized: User ID is required.' });
     }
 
-    const user = store.users[userId];
+    const user = await getUserById(userId);
     if (!user) {
         return res.status(401).json({ error: 'Unauthorized: User not found.' });
     }
@@ -830,7 +818,7 @@ app.get('/api/debug/firebase', async (req, res) => {
 });
 
 // SSE Connection Endpoint
-app.get('/api/updates', (req, res) => {
+app.get('/api/updates', async (req, res) => {
   const userId = req.query.userId as string;
   if (!userId) {
     return res.status(400).json({ error: 'Missing userId parameter' });
@@ -870,7 +858,7 @@ app.get('/api/updates', (req, res) => {
       player.status = 'online';
       player.inactivityTimer = 300; // Reset their full inactivity timer
       addLog(activeRoom, `🟢 ${player.username} has reconnected! Welcome back.`);
-      broadcastToRoom(activeRoom.id, 'game_update', activeRoom);
+      await broadcastToRoom(activeRoom.id, 'game_update', activeRoom);
       
     }
   }
@@ -1032,7 +1020,7 @@ app.post('/api/users/:userId/update', async (req: any, res) => {
 
         const updatedUser = await getUserById(userIdToUpdate);
 
-        broadcastUserUpdate(userIdToUpdate);
+        await broadcastUserUpdate(userIdToUpdate);
         res.json(updatedUser);
 
     } catch (error) {
@@ -1057,7 +1045,7 @@ app.post('/api/users/:userId/status', async (req, res) => {
 
     const updatedUser = await getUserById(userId);
 
-    broadcastUserUpdate(userId);
+    await broadcastUserUpdate(userId);
     res.json({ success: true, isOfflinePreference: isOfflinePreference, user: updatedUser });
   } catch (error) {
     console.error('Error updating user status:', error);
@@ -1091,7 +1079,7 @@ app.post('/api/wallet/deposit', async (req, res) => {
     };
     await createTransaction(tx);
 
-    broadcastUserUpdate(userId);
+    await broadcastUserUpdate(userId);
 
     res.json({ success: true, balance: newBalance });
   } catch (error) {
@@ -1133,7 +1121,7 @@ app.post('/api/wallet/withdraw', async (req, res) => {
     };
     await createTransaction(tx);
 
-    broadcastUserUpdate(userId);
+    await broadcastUserUpdate(userId);
 
     res.json({ success: true, balance: newBalance });
   } catch (error) {
@@ -1239,7 +1227,7 @@ app.post('/api/wallet/process-api-payment', async (req, res) => {
     }
     user.balance -= parsedAmount;
     await addTransaction(userId, 'withdrawal', parsedAmount, undefined, `API withdrawal via ${providerKey}.`);
-    broadcastUserUpdate(userId);
+    await broadcastUserUpdate(userId);
     await saveStoreAndWait();
     return res.json({ success: true, balance: user.balance, message: 'Withdrawal processed via API.' });
   }
@@ -1250,7 +1238,7 @@ app.post('/api/wallet/process-api-payment', async (req, res) => {
     }
     user.balance += parsedAmount;
     await addTransaction(userId, 'deposit', parsedAmount, undefined, `API deposit via ${providerKey}.`);
-    broadcastUserUpdate(userId);
+    await broadcastUserUpdate(userId);
     await saveStoreAndWait();
     return res.json({ success: true, balance: user.balance, message: 'Deposit processed via API.' });
   }
@@ -1295,7 +1283,7 @@ app.post('/api/vip/subscribe', async (req: any, res) => {
   await addTransaction(user.id, 'app_commission', vipTier.price, undefined, `VIP Subscription (${vipTier.name}) purchase.`);
 
   await saveStoreAndWait();
-  broadcastUserUpdate(user.id);
+  await broadcastUserUpdate(user.id);
 
   res.json({ success: true, user, message: `Successfully subscribed to ${vipTier.name} VIP!` });
 });
@@ -1361,7 +1349,7 @@ app.post('/api/tournaments/:id/register', async (req: any, res) => {
       createdAt: user.createdAt,
     });
   await saveStoreAndWait();
-  broadcastUserUpdate(user.id);
+  await broadcastUserUpdate(user.id);
   
   // Broadcast tournament update
   broadcastToAll('tournament_update', tournament);
@@ -1433,7 +1421,7 @@ async function handleTournamentMatchWin(tournamentId: string, matchId: string, w
       if (winnerUser) {
         winnerUser.balance += tournament.prizePool;
         await addTransaction(winnerUser.id, 'win_payout', tournament.prizePool, tournament.id, `Tournament "${tournament.name}" prize.`);
-        broadcastUserUpdate(winnerUser.id);
+        await broadcastUserUpdate(winnerUser.id);
       }
       broadcastToAll('tournament_ended', tournament);
     } else {
@@ -1535,13 +1523,13 @@ setInterval(checkAndStartTournaments, 10000); // Check every 10 seconds
 
 // GET /api/rooms/active
 // Returns a list of all currently active games that can be spectated.
-app.get('/api/rooms/active', (req, res) => {
-  const activeGames = Object.values(store.rooms)
-    .filter(r => r.status === 'playing')
-    .map(r => ({
-      id: r.id, // Changed from roomId to id to match GameRoom type
+app.get('/api/rooms/active', async (req, res) => {
+  try {
+    const activeGames = await getActiveRooms();
+    const sanitizedGames = activeGames.map(r => ({
+      id: r.id,
       players: r.players.map(p => ({
-        userId: p.userId, // Added userId
+        userId: p.userId,
         username: p.username,
         avatar: p.avatar,
       })),
@@ -1549,12 +1537,16 @@ app.get('/api/rooms/active', (req, res) => {
       gameMode: r.gameMode,
       capacity: r.capacity,
     }));
-  res.json(activeGames);
+    res.json(sanitizedGames);
+  } catch (error) {
+    console.error('Failed to get active rooms:', error);
+    res.status(500).json({ error: 'Failed to retrieve active games.' });
+  }
 });
 
 // POST /api/rooms/:roomId/stop-spectating
 // Allows a user to stop spectating a game.
-app.post('/api/rooms/:roomId/stop-spectating', (req, res) => {
+app.post('/api/rooms/:roomId/stop-spectating', async (req, res) => {
   const { roomId } = req.params;
   const { userId } = req.body;
 
@@ -1562,7 +1554,7 @@ app.post('/api/rooms/:roomId/stop-spectating', (req, res) => {
     return res.status(400).json({ error: 'User ID is required.' });
   }
 
-  const room = store.rooms[roomId];
+  const room = await getRoomById(roomId);
   if (!room) {
     // It's possible the room was deleted while the user was spectating.
     // In this case, just ensure the client state is clean.
@@ -1580,7 +1572,7 @@ app.post('/api/rooms/:roomId/stop-spectating', (req, res) => {
   }
 
   // Broadcast an update to the room to remove the spectator from the list
-  broadcastToRoom(roomId, 'game_update', room);
+  await broadcastToRoom(roomId, 'game_update', room);
 
   res.json({ success: true, message: 'Stopped spectating.' });
 });
@@ -1740,7 +1732,7 @@ async function startMatchedRoom(matchedUsers: Array<{ id: string; username: stri
       if (u) {
         u.balance = Math.max(0, u.balance - bet);
         await addTransaction(p.userId, 'bet_escrow_locked', bet, roomId, `Escrow stake for Ludo Match ${roomId}.`);
-        broadcastUserUpdate(p.userId);
+        await broadcastUserUpdate(p.userId);
       }
     }
     totalEscrow += bet;
@@ -2247,7 +2239,7 @@ app.post('/api/rooms/challenge/accept', (req, res) => {
 
 
 // Ready Up / Toggle Ready
-app.post('/api/rooms/ready', (req, res) => {
+app.post('/api/rooms/ready', async (req, res) => {
   const { userId, roomId } = req.body;
   const room = store.rooms[roomId];
   if (!room) return res.status(404).json({ error: 'Room not found' });
@@ -2259,7 +2251,7 @@ app.post('/api/rooms/ready', (req, res) => {
   addLog(room, `${p.username} is ${p.isReady ? 'READY' : 'NOT READY'}.`);
   
 
-  broadcastToRoom(room.id, 'game_update', room);
+  await broadcastToRoom(room.id, 'game_update', room);
   res.json(room);
 });
 
@@ -2273,7 +2265,7 @@ app.post('/api/rooms/start', async (req, res) => {
 
     // The color assignment logic and other pre-start checks are now inside startGame.
     // If successful, broadcast the update to all players in the room.
-    broadcastToRoom(roomId, 'game_update', updatedRoom);
+    await broadcastToRoom(roomId, 'game_update', updatedRoom);
 
     // Also update the individual users' balances via SSE if they are connected
     updatedRoom.players.forEach(player => {
@@ -2303,7 +2295,7 @@ app.post('/api/rooms/start', async (req, res) => {
 });
 
 // Dice Roll Action
-app.post('/api/rooms/roll-dice', (req, res) => {
+app.post('/api/rooms/roll-dice', async (req, res) => {
   const { userId, roomId } = req.body;
   const room = store.rooms[roomId];
   if (!room) return res.status(404).json({ error: 'Room not found' });
@@ -2351,7 +2343,7 @@ app.post('/api/rooms/roll-dice', (req, res) => {
     // Advance turn synchronously
     advanceTurn(room);
     
-    broadcastToRoom(room.id, 'game_update', room);
+    await broadcastToRoom(room.id, 'game_update', room);
     executeBotTurnIfActive(room);
 
     return res.json(room);
@@ -2366,17 +2358,17 @@ app.post('/api/rooms/roll-dice', (req, res) => {
     // FIRST, broadcast the result of the roll so all clients can see the animation.
     addLog(room, `${activePlayer.username} has no valid moves with roll ${d}. Turn passes.`);
     
-    broadcastToRoom(room.id, 'game_update', room);
+    await broadcastToRoom(room.id, 'game_update', room);
     res.json(room); // Respond to the roller immediately.
 
     // SECOND, after a delay to allow for the animation, advance the turn and broadcast again.
-    setTimeout(() => {
+    setTimeout(async () => {
       // Re-fetch the room to ensure we're acting on the latest state
       const currentRoom = store.rooms[roomId];
       if (currentRoom && currentRoom.status === 'playing') {
         advanceTurn(currentRoom);
         
-        broadcastToRoom(currentRoom.id, 'game_update', currentRoom);
+        await broadcastToRoom(currentRoom.id, 'game_update', currentRoom);
         executeBotTurnIfActive(currentRoom);
       }
     }, 1500); // 1.5-second delay for clients to see the roll animation
@@ -2384,13 +2376,13 @@ app.post('/api/rooms/roll-dice', (req, res) => {
   } else {
     // There are valid moves, so we just update the state and wait for the player's move.
     
-    broadcastToRoom(room.id, 'game_update', room);
+    await broadcastToRoom(room.id, 'game_update', room);
     res.json(room);
   }
 });
 
 // Send Chat Message
-app.post('/api/rooms/chat', (req, res) => {
+app.post('/api/rooms/chat', async (req, res) => {
   const { userId, roomId, text } = req.body;
   const room = store.rooms[roomId];
   if (!room) return res.status(404).json({ error: 'Room not found' });
@@ -2419,14 +2411,14 @@ app.post('/api/rooms/chat', (req, res) => {
       room.gameState.chat.shift();
     }
     
-    broadcastToRoom(room.id, 'game_update', room);
+    await broadcastToRoom(room.id, 'game_update', room);
   }
 
   res.json(room);
 });
 
 // Nudge Slow Player
-app.post('/api/rooms/nudge', (req, res) => {
+app.post('/api/rooms/nudge', async (req, res) => {
   const { userId, roomId } = req.body;
   const room = store.rooms[roomId];
   if (!room) return res.status(404).json({ error: 'Room not found' });
@@ -2444,7 +2436,7 @@ app.post('/api/rooms/nudge', (req, res) => {
   sendEventToUser(activePlayer.userId, 'player_nudged', { nudgedBy: p.username });
   
   // Broadcast game update with updated logs
-  broadcastToRoom(room.id, 'game_update', room);
+  await broadcastToRoom(room.id, 'game_update', room);
 
   res.json(room);
 });
@@ -2458,10 +2450,10 @@ app.post('/api/rooms/leave', async (req, res) => {
 
     if (updatedRoom) {
       // Room still exists, broadcast update
-      broadcastToRoom(roomId, 'game_update', updatedRoom);
+      await broadcastToRoom(roomId, 'game_update', updatedRoom);
     } else {
       // Room was deleted (last player left)
-      broadcastToRoom(roomId, 'room_deleted', { roomId });
+      await broadcastToRoom(roomId, 'room_deleted', { roomId });
     }
 
     res.json({ success: true });
@@ -2820,7 +2812,7 @@ app.post('/api/admin/manual-transactions/:transactionId/approve', isAdmin, async
     tx.status = 'approved';
     await saveStoreAndWait();
 
-    broadcastUserUpdate(user.id);
+    await broadcastUserUpdate(user.id);
     res.json({ success: true, transaction: tx });
 });
 
@@ -3020,14 +3012,14 @@ app.post('/api/admin/rooms/:roomId/cancel', isAdmin, async (req, res) => {
                 if (user) {
                     user.balance += room.betAmount;
                     await addTransaction(p.userId, 'refund', room.betAmount, room.id, `Refund for canceled match ${room.id}.`);
-                    broadcastUserUpdate(p.userId);
+                    await broadcastUserUpdate(p.userId);
                 }
             }
         }
     }
 
     addLog(room, `Game canceled by admin. Bets refunded.`);
-    broadcastToRoom(room.id, 'game_canceled', { roomId });
+    await broadcastToRoom(room.id, 'game_canceled', { roomId });
     
     delete store.rooms[roomId];
     await saveStoreAndWait();
@@ -3049,7 +3041,7 @@ app.post('/api/admin/users/:userId/toggle-admin', isAdmin, (req, res) => {
     }
 
     
-    broadcastUserUpdate(user.id);
+    await broadcastUserUpdate(user.id);
     res.json({ success: true, user });
 });
 
@@ -3186,7 +3178,7 @@ app.post('/api/agent/deposit', isAgent, async (req: any, res) => {
     try {
         const { newAgentBalance, newPlayerBalance } = await depositToPlayer(agent.id, playerId, depositAmount);
 
-        broadcastUserUpdate(playerId);
+        await broadcastUserUpdate(playerId);
         
         res.json({ success: true, newAgentBalance, newPlayerBalance });
 

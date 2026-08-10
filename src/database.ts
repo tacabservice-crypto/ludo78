@@ -502,6 +502,15 @@ export async function getRoomById(roomId: string): Promise<GameRoomType | null> 
     return mapToGameRoomType(room);
 }
 
+export async function getActiveRooms(): Promise<GameRoomType[]> {
+    const rooms = await GameRoom.findAll({
+        where: { status: 'playing' },
+        include: [{ model: LudoPlayer, include: [UserProfile] }]
+    });
+
+    return rooms.map(room => mapToGameRoomType(room));
+}
+
 export async function addPlayerToRoom(roomId: string, player: LudoPlayerType): Promise<GameRoomType> {
     await LudoPlayer.create({
         roomId: roomId,

@@ -1,5 +1,30 @@
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name2 in all)
+    __defProp(target, name2, { get: all[name2], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var __decorateClass = (decorators, target, key, kind) => {
   var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
@@ -10,78 +35,83 @@ var __decorateClass = (decorators, target, key, kind) => {
 };
 
 // server.ts
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
-import path from "path";
-import fs from "fs";
+var server_exports = {};
+__export(server_exports, {
+  api: () => api
+});
+module.exports = __toCommonJS(server_exports);
+var import_config = require("dotenv/config");
+var import_express = __toESM(require("express"), 1);
+var import_cors = __toESM(require("cors"), 1);
+var import_path = __toESM(require("path"), 1);
+var import_fs = __toESM(require("fs"), 1);
 
 // src/sequelize.ts
-import { Sequelize } from "sequelize-typescript";
-import dotenv from "dotenv";
+var import_sequelize_typescript13 = require("sequelize-typescript");
+var import_dotenv = __toESM(require("dotenv"), 1);
 
 // src/models/UserProfile.ts
-import { Table as Table2, Column as Column2, Model as Model2, PrimaryKey as PrimaryKey2, Unique as Unique2, AllowNull as AllowNull2, DataType as DataType2, ForeignKey, BelongsTo } from "sequelize-typescript";
+var import_sequelize_typescript2 = require("sequelize-typescript");
 
 // src/models/Agent.ts
-import { Table, Column, Model, PrimaryKey, Unique, AllowNull, DataType, HasMany } from "sequelize-typescript";
-var Agent = class extends Model {
+var import_sequelize_typescript = require("sequelize-typescript");
+var Agent = class extends import_sequelize_typescript.Model {
 };
 __decorateClass([
-  PrimaryKey,
-  Column(DataType.STRING)
+  import_sequelize_typescript.PrimaryKey,
+  (0, import_sequelize_typescript.Column)(import_sequelize_typescript.DataType.STRING)
 ], Agent.prototype, "id", 2);
 __decorateClass([
-  Unique,
-  AllowNull(false),
-  Column(DataType.STRING)
+  import_sequelize_typescript.Unique,
+  (0, import_sequelize_typescript.AllowNull)(false),
+  (0, import_sequelize_typescript.Column)(import_sequelize_typescript.DataType.STRING)
 ], Agent.prototype, "username", 2);
 __decorateClass([
-  Unique,
-  AllowNull(false),
-  Column(DataType.STRING)
+  import_sequelize_typescript.Unique,
+  (0, import_sequelize_typescript.AllowNull)(false),
+  (0, import_sequelize_typescript.Column)(import_sequelize_typescript.DataType.STRING)
 ], Agent.prototype, "phone", 2);
 __decorateClass([
-  AllowNull(false),
-  Column(DataType.STRING)
+  (0, import_sequelize_typescript.AllowNull)(false),
+  (0, import_sequelize_typescript.Column)(import_sequelize_typescript.DataType.STRING)
 ], Agent.prototype, "password", 2);
 __decorateClass([
-  Unique,
-  Column(DataType.STRING)
+  import_sequelize_typescript.Unique,
+  (0, import_sequelize_typescript.Column)(import_sequelize_typescript.DataType.STRING)
 ], Agent.prototype, "promo_code", 2);
 __decorateClass([
-  Column(DataType.STRING)
+  (0, import_sequelize_typescript.Column)(import_sequelize_typescript.DataType.STRING)
 ], Agent.prototype, "location", 2);
 __decorateClass([
-  AllowNull(false),
-  Column(DataType.DECIMAL(5, 4))
+  (0, import_sequelize_typescript.AllowNull)(false),
+  (0, import_sequelize_typescript.Column)(import_sequelize_typescript.DataType.DECIMAL(5, 4))
 ], Agent.prototype, "commission_rate", 2);
 __decorateClass([
-  AllowNull(false),
-  Column({
-    type: DataType.DECIMAL(10, 2),
+  (0, import_sequelize_typescript.AllowNull)(false),
+  (0, import_sequelize_typescript.Column)({
+    type: import_sequelize_typescript.DataType.DECIMAL(10, 2),
     defaultValue: 0
   })
 ], Agent.prototype, "balance", 2);
 __decorateClass([
-  Column(DataType.DECIMAL(10, 2))
+  (0, import_sequelize_typescript.Column)(import_sequelize_typescript.DataType.DECIMAL(10, 2))
 ], Agent.prototype, "float_balance", 2);
 __decorateClass([
-  AllowNull(false),
-  Column({
-    type: DataType.ENUM("Active", "Suspended"),
+  (0, import_sequelize_typescript.AllowNull)(false),
+  (0, import_sequelize_typescript.Column)({
+    type: import_sequelize_typescript.DataType.ENUM("Active", "Suspended"),
     defaultValue: "Active"
   })
 ], Agent.prototype, "status", 2);
 __decorateClass([
-  AllowNull(false),
-  Column(DataType.BIGINT)
+  (0, import_sequelize_typescript.AllowNull)(false),
+  (0, import_sequelize_typescript.Column)(import_sequelize_typescript.DataType.BIGINT)
 ], Agent.prototype, "created_at", 2);
 __decorateClass([
-  HasMany(() => UserProfile)
+  (0, import_sequelize_typescript.HasMany)(() => UserProfile)
 ], Agent.prototype, "linked_users", 2);
 Agent = __decorateClass([
-  Table({
+  (0, import_sequelize_typescript.Table)({
     tableName: "agents",
     timestamps: false
     // We have createdAt as a BIGINT
@@ -89,91 +119,91 @@ Agent = __decorateClass([
 ], Agent);
 
 // src/models/UserProfile.ts
-var UserProfile = class extends Model2 {
+var UserProfile = class extends import_sequelize_typescript2.Model {
   // Unix timestamp
 };
 __decorateClass([
-  PrimaryKey2,
-  Column2(DataType2.STRING)
+  import_sequelize_typescript2.PrimaryKey,
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "id", 2);
 __decorateClass([
-  Unique2,
-  AllowNull2(false),
-  Column2(DataType2.STRING)
+  import_sequelize_typescript2.Unique,
+  (0, import_sequelize_typescript2.AllowNull)(false),
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "username", 2);
 __decorateClass([
-  Unique2,
-  Column2(DataType2.STRING)
+  import_sequelize_typescript2.Unique,
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "email", 2);
 __decorateClass([
-  Column2(DataType2.STRING)
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "phone", 2);
 __decorateClass([
-  Column2(DataType2.STRING)
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "location", 2);
 __decorateClass([
-  AllowNull2(false),
-  Column2(DataType2.STRING)
+  (0, import_sequelize_typescript2.AllowNull)(false),
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "avatar", 2);
 __decorateClass([
-  AllowNull2(false),
-  Column2({
-    type: DataType2.DECIMAL(10, 2),
+  (0, import_sequelize_typescript2.AllowNull)(false),
+  (0, import_sequelize_typescript2.Column)({
+    type: import_sequelize_typescript2.DataType.DECIMAL(10, 2),
     defaultValue: 0
   })
 ], UserProfile.prototype, "balance", 2);
 __decorateClass([
-  AllowNull2(false),
-  Column2({
-    type: DataType2.INTEGER,
+  (0, import_sequelize_typescript2.AllowNull)(false),
+  (0, import_sequelize_typescript2.Column)({
+    type: import_sequelize_typescript2.DataType.INTEGER,
     defaultValue: 0
   })
 ], UserProfile.prototype, "win_count", 2);
 __decorateClass([
-  AllowNull2(false),
-  Column2({
-    type: DataType2.INTEGER,
+  (0, import_sequelize_typescript2.AllowNull)(false),
+  (0, import_sequelize_typescript2.Column)({
+    type: import_sequelize_typescript2.DataType.INTEGER,
     defaultValue: 0
   })
 ], UserProfile.prototype, "loss_count", 2);
 __decorateClass([
-  Column2({
-    type: DataType2.BOOLEAN,
+  (0, import_sequelize_typescript2.Column)({
+    type: import_sequelize_typescript2.DataType.BOOLEAN,
     defaultValue: false
   })
 ], UserProfile.prototype, "is_offline_preference", 2);
 __decorateClass([
-  Column2(DataType2.STRING)
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "vip_tier", 2);
 __decorateClass([
-  Column2(DataType2.BIGINT)
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.BIGINT)
 ], UserProfile.prototype, "vip_expires", 2);
 __decorateClass([
-  Column2(DataType2.STRING)
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "role", 2);
 __decorateClass([
-  Column2(DataType2.STRING)
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "password", 2);
 __decorateClass([
-  ForeignKey(() => Agent),
-  Column2(DataType2.STRING)
+  (0, import_sequelize_typescript2.ForeignKey)(() => Agent),
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "linked_agent_id", 2);
 __decorateClass([
-  BelongsTo(() => Agent)
+  (0, import_sequelize_typescript2.BelongsTo)(() => Agent)
 ], UserProfile.prototype, "agent", 2);
 __decorateClass([
-  Column2(DataType2.STRING)
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "promo_code", 2);
 __decorateClass([
-  Unique2,
-  Column2(DataType2.STRING)
+  import_sequelize_typescript2.Unique,
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.STRING)
 ], UserProfile.prototype, "firebase_uid", 2);
 __decorateClass([
-  AllowNull2(false),
-  Column2(DataType2.BIGINT)
+  (0, import_sequelize_typescript2.AllowNull)(false),
+  (0, import_sequelize_typescript2.Column)(import_sequelize_typescript2.DataType.BIGINT)
 ], UserProfile.prototype, "created_at", 2);
 UserProfile = __decorateClass([
-  Table2({
+  (0, import_sequelize_typescript2.Table)({
     tableName: "user_profiles",
     timestamps: false
     // We have createdAt as a BIGINT
@@ -181,41 +211,41 @@ UserProfile = __decorateClass([
 ], UserProfile);
 
 // src/models/WalletTransaction.ts
-import { Table as Table3, Column as Column3, Model as Model3, PrimaryKey as PrimaryKey3, AllowNull as AllowNull3, DataType as DataType3, ForeignKey as ForeignKey2, BelongsTo as BelongsTo2 } from "sequelize-typescript";
-var WalletTransaction = class extends Model3 {
+var import_sequelize_typescript3 = require("sequelize-typescript");
+var WalletTransaction = class extends import_sequelize_typescript3.Model {
 };
 __decorateClass([
-  PrimaryKey3,
-  Column3(DataType3.STRING)
+  import_sequelize_typescript3.PrimaryKey,
+  (0, import_sequelize_typescript3.Column)(import_sequelize_typescript3.DataType.STRING)
 ], WalletTransaction.prototype, "id", 2);
 __decorateClass([
-  ForeignKey2(() => UserProfile),
-  AllowNull3(false),
-  Column3(DataType3.STRING)
+  (0, import_sequelize_typescript3.ForeignKey)(() => UserProfile),
+  (0, import_sequelize_typescript3.AllowNull)(false),
+  (0, import_sequelize_typescript3.Column)(import_sequelize_typescript3.DataType.STRING)
 ], WalletTransaction.prototype, "user_id", 2);
 __decorateClass([
-  BelongsTo2(() => UserProfile)
+  (0, import_sequelize_typescript3.BelongsTo)(() => UserProfile)
 ], WalletTransaction.prototype, "user", 2);
 __decorateClass([
-  AllowNull3(false),
-  Column3(DataType3.ENUM("deposit", "withdrawal", "bet_escrow_locked", "bet_escrow_refund", "win_payout", "app_commission", "refund"))
+  (0, import_sequelize_typescript3.AllowNull)(false),
+  (0, import_sequelize_typescript3.Column)(import_sequelize_typescript3.DataType.ENUM("deposit", "withdrawal", "bet_escrow_locked", "bet_escrow_refund", "win_payout", "app_commission", "refund"))
 ], WalletTransaction.prototype, "type", 2);
 __decorateClass([
-  AllowNull3(false),
-  Column3(DataType3.DECIMAL(10, 2))
+  (0, import_sequelize_typescript3.AllowNull)(false),
+  (0, import_sequelize_typescript3.Column)(import_sequelize_typescript3.DataType.DECIMAL(10, 2))
 ], WalletTransaction.prototype, "amount", 2);
 __decorateClass([
-  AllowNull3(false),
-  Column3(DataType3.BIGINT)
+  (0, import_sequelize_typescript3.AllowNull)(false),
+  (0, import_sequelize_typescript3.Column)(import_sequelize_typescript3.DataType.BIGINT)
 ], WalletTransaction.prototype, "timestamp", 2);
 __decorateClass([
-  Column3(DataType3.STRING)
+  (0, import_sequelize_typescript3.Column)(import_sequelize_typescript3.DataType.STRING)
 ], WalletTransaction.prototype, "match_id", 2);
 __decorateClass([
-  Column3(DataType3.TEXT)
+  (0, import_sequelize_typescript3.Column)(import_sequelize_typescript3.DataType.TEXT)
 ], WalletTransaction.prototype, "description", 2);
 WalletTransaction = __decorateClass([
-  Table3({
+  (0, import_sequelize_typescript3.Table)({
     tableName: "wallet_transactions",
     timestamps: false
     // We have timestamp as a BIGINT
@@ -223,493 +253,493 @@ WalletTransaction = __decorateClass([
 ], WalletTransaction);
 
 // src/models/AgentTransaction.ts
-import { Table as Table4, Column as Column4, Model as Model4, PrimaryKey as PrimaryKey4, DataType as DataType4 } from "sequelize-typescript";
-var AgentTransaction = class extends Model4 {
+var import_sequelize_typescript4 = require("sequelize-typescript");
+var AgentTransaction = class extends import_sequelize_typescript4.Model {
 };
 __decorateClass([
-  PrimaryKey4,
-  Column4(DataType4.STRING)
+  import_sequelize_typescript4.PrimaryKey,
+  (0, import_sequelize_typescript4.Column)(import_sequelize_typescript4.DataType.STRING)
 ], AgentTransaction.prototype, "id", 2);
 __decorateClass([
-  Column4(DataType4.STRING)
+  (0, import_sequelize_typescript4.Column)(import_sequelize_typescript4.DataType.STRING)
 ], AgentTransaction.prototype, "agent_id", 2);
 __decorateClass([
-  Column4(DataType4.STRING)
+  (0, import_sequelize_typescript4.Column)(import_sequelize_typescript4.DataType.STRING)
 ], AgentTransaction.prototype, "type", 2);
 __decorateClass([
-  Column4(DataType4.DECIMAL)
+  (0, import_sequelize_typescript4.Column)(import_sequelize_typescript4.DataType.DECIMAL)
 ], AgentTransaction.prototype, "amount", 2);
 __decorateClass([
-  Column4(DataType4.DECIMAL)
+  (0, import_sequelize_typescript4.Column)(import_sequelize_typescript4.DataType.DECIMAL)
 ], AgentTransaction.prototype, "discount_amount", 2);
 __decorateClass([
-  Column4(DataType4.STRING)
+  (0, import_sequelize_typescript4.Column)(import_sequelize_typescript4.DataType.STRING)
 ], AgentTransaction.prototype, "player_id", 2);
 __decorateClass([
-  Column4(DataType4.STRING)
+  (0, import_sequelize_typescript4.Column)(import_sequelize_typescript4.DataType.STRING)
 ], AgentTransaction.prototype, "player_name", 2);
 __decorateClass([
-  Column4(DataType4.BIGINT)
+  (0, import_sequelize_typescript4.Column)(import_sequelize_typescript4.DataType.BIGINT)
 ], AgentTransaction.prototype, "timestamp", 2);
 __decorateClass([
-  Column4(DataType4.TEXT)
+  (0, import_sequelize_typescript4.Column)(import_sequelize_typescript4.DataType.TEXT)
 ], AgentTransaction.prototype, "description", 2);
 AgentTransaction = __decorateClass([
-  Table4({ tableName: "agent_transactions", timestamps: false })
+  (0, import_sequelize_typescript4.Table)({ tableName: "agent_transactions", timestamps: false })
 ], AgentTransaction);
 
 // src/models/AgentRequest.ts
-import { Table as Table5, Column as Column5, Model as Model5, PrimaryKey as PrimaryKey5, DataType as DataType5 } from "sequelize-typescript";
-var AgentRequest = class extends Model5 {
+var import_sequelize_typescript5 = require("sequelize-typescript");
+var AgentRequest = class extends import_sequelize_typescript5.Model {
 };
 __decorateClass([
-  PrimaryKey5,
-  Column5(DataType5.STRING)
+  import_sequelize_typescript5.PrimaryKey,
+  (0, import_sequelize_typescript5.Column)(import_sequelize_typescript5.DataType.STRING)
 ], AgentRequest.prototype, "id", 2);
 __decorateClass([
-  Column5(DataType5.STRING)
+  (0, import_sequelize_typescript5.Column)(import_sequelize_typescript5.DataType.STRING)
 ], AgentRequest.prototype, "agent_id", 2);
 __decorateClass([
-  Column5(DataType5.STRING)
+  (0, import_sequelize_typescript5.Column)(import_sequelize_typescript5.DataType.STRING)
 ], AgentRequest.prototype, "agent_username", 2);
 __decorateClass([
-  Column5(DataType5.DECIMAL)
+  (0, import_sequelize_typescript5.Column)(import_sequelize_typescript5.DataType.DECIMAL)
 ], AgentRequest.prototype, "amount", 2);
 __decorateClass([
-  Column5(DataType5.STRING)
+  (0, import_sequelize_typescript5.Column)(import_sequelize_typescript5.DataType.STRING)
 ], AgentRequest.prototype, "status", 2);
 __decorateClass([
-  Column5(DataType5.BIGINT)
+  (0, import_sequelize_typescript5.Column)(import_sequelize_typescript5.DataType.BIGINT)
 ], AgentRequest.prototype, "created_at", 2);
 __decorateClass([
-  Column5(DataType5.BIGINT)
+  (0, import_sequelize_typescript5.Column)(import_sequelize_typescript5.DataType.BIGINT)
 ], AgentRequest.prototype, "resolved_at", 2);
 __decorateClass([
-  Column5(DataType5.STRING)
+  (0, import_sequelize_typescript5.Column)(import_sequelize_typescript5.DataType.STRING)
 ], AgentRequest.prototype, "resolved_by", 2);
 __decorateClass([
-  Column5(DataType5.STRING)
+  (0, import_sequelize_typescript5.Column)(import_sequelize_typescript5.DataType.STRING)
 ], AgentRequest.prototype, "resolver_username", 2);
 AgentRequest = __decorateClass([
-  Table5({ tableName: "agent_requests", timestamps: false })
+  (0, import_sequelize_typescript5.Table)({ tableName: "agent_requests", timestamps: false })
 ], AgentRequest);
 
 // src/models/PlayerAgentRequestModel.ts
-import { Table as Table6, Column as Column6, Model as Model6, PrimaryKey as PrimaryKey6, DataType as DataType6 } from "sequelize-typescript";
-var PlayerAgentRequestModel = class extends Model6 {
+var import_sequelize_typescript6 = require("sequelize-typescript");
+var PlayerAgentRequestModel = class extends import_sequelize_typescript6.Model {
 };
 __decorateClass([
-  PrimaryKey6,
-  Column6(DataType6.STRING)
+  import_sequelize_typescript6.PrimaryKey,
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "id", 2);
 __decorateClass([
-  Column6(DataType6.STRING)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "player_id", 2);
 __decorateClass([
-  Column6(DataType6.STRING)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "player_username", 2);
 __decorateClass([
-  Column6(DataType6.STRING)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "player_avatar", 2);
 __decorateClass([
-  Column6(DataType6.STRING)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "agent_id", 2);
 __decorateClass([
-  Column6(DataType6.STRING)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "player_phone", 2);
 __decorateClass([
-  Column6(DataType6.STRING)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "sender_phone", 2);
 __decorateClass([
-  Column6(DataType6.STRING)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "provider", 2);
 __decorateClass([
-  Column6(DataType6.STRING)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "type", 2);
 __decorateClass([
-  Column6(DataType6.DECIMAL)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.DECIMAL)
 ], PlayerAgentRequestModel.prototype, "amount", 2);
 __decorateClass([
-  Column6(DataType6.STRING)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.STRING)
 ], PlayerAgentRequestModel.prototype, "status", 2);
 __decorateClass([
-  Column6(DataType6.BIGINT)
+  (0, import_sequelize_typescript6.Column)(import_sequelize_typescript6.DataType.BIGINT)
 ], PlayerAgentRequestModel.prototype, "created_at", 2);
 PlayerAgentRequestModel = __decorateClass([
-  Table6({ tableName: "player_agent_requests", timestamps: false })
+  (0, import_sequelize_typescript6.Table)({ tableName: "player_agent_requests", timestamps: false })
 ], PlayerAgentRequestModel);
 
 // src/models/AdminUser.ts
-import { Table as Table7, Column as Column7, Model as Model7, PrimaryKey as PrimaryKey7, DataType as DataType7, Unique as Unique3 } from "sequelize-typescript";
-var AdminUser = class extends Model7 {
+var import_sequelize_typescript7 = require("sequelize-typescript");
+var AdminUser = class extends import_sequelize_typescript7.Model {
 };
 __decorateClass([
-  PrimaryKey7,
-  Column7(DataType7.STRING)
+  import_sequelize_typescript7.PrimaryKey,
+  (0, import_sequelize_typescript7.Column)(import_sequelize_typescript7.DataType.STRING)
 ], AdminUser.prototype, "id", 2);
 __decorateClass([
-  Unique3,
-  Column7(DataType7.STRING)
+  import_sequelize_typescript7.Unique,
+  (0, import_sequelize_typescript7.Column)(import_sequelize_typescript7.DataType.STRING)
 ], AdminUser.prototype, "username", 2);
 __decorateClass([
-  Column7(DataType7.STRING)
+  (0, import_sequelize_typescript7.Column)(import_sequelize_typescript7.DataType.STRING)
 ], AdminUser.prototype, "password_hash", 2);
 __decorateClass([
-  Column7(DataType7.JSON)
+  (0, import_sequelize_typescript7.Column)(import_sequelize_typescript7.DataType.JSON)
 ], AdminUser.prototype, "permissions", 2);
 AdminUser = __decorateClass([
-  Table7({ tableName: "admin_users", timestamps: false })
+  (0, import_sequelize_typescript7.Table)({ tableName: "admin_users", timestamps: false })
 ], AdminUser);
 
 // src/models/MatchmakingModel.ts
-import { Table as Table8, Column as Column8, Model as Model8, PrimaryKey as PrimaryKey8, DataType as DataType8 } from "sequelize-typescript";
-var MatchmakingModel = class extends Model8 {
+var import_sequelize_typescript8 = require("sequelize-typescript");
+var MatchmakingModel = class extends import_sequelize_typescript8.Model {
 };
 __decorateClass([
-  PrimaryKey8,
-  Column8(DataType8.STRING)
+  import_sequelize_typescript8.PrimaryKey,
+  (0, import_sequelize_typescript8.Column)(import_sequelize_typescript8.DataType.STRING)
 ], MatchmakingModel.prototype, "user_id", 2);
 __decorateClass([
-  Column8(DataType8.STRING)
+  (0, import_sequelize_typescript8.Column)(import_sequelize_typescript8.DataType.STRING)
 ], MatchmakingModel.prototype, "username", 2);
 __decorateClass([
-  Column8(DataType8.STRING)
+  (0, import_sequelize_typescript8.Column)(import_sequelize_typescript8.DataType.STRING)
 ], MatchmakingModel.prototype, "avatar", 2);
 __decorateClass([
-  Column8(DataType8.DECIMAL)
+  (0, import_sequelize_typescript8.Column)(import_sequelize_typescript8.DataType.DECIMAL)
 ], MatchmakingModel.prototype, "bet_amount", 2);
 __decorateClass([
-  Column8(DataType8.INTEGER)
+  (0, import_sequelize_typescript8.Column)(import_sequelize_typescript8.DataType.INTEGER)
 ], MatchmakingModel.prototype, "capacity", 2);
 __decorateClass([
-  Column8(DataType8.STRING)
+  (0, import_sequelize_typescript8.Column)(import_sequelize_typescript8.DataType.STRING)
 ], MatchmakingModel.prototype, "game_mode", 2);
 __decorateClass([
-  Column8(DataType8.STRING)
+  (0, import_sequelize_typescript8.Column)(import_sequelize_typescript8.DataType.STRING)
 ], MatchmakingModel.prototype, "status", 2);
 __decorateClass([
-  Column8(DataType8.BIGINT)
+  (0, import_sequelize_typescript8.Column)(import_sequelize_typescript8.DataType.BIGINT)
 ], MatchmakingModel.prototype, "timestamp", 2);
 MatchmakingModel = __decorateClass([
-  Table8({ tableName: "matchmaking", timestamps: false })
+  (0, import_sequelize_typescript8.Table)({ tableName: "matchmaking", timestamps: false })
 ], MatchmakingModel);
 
 // src/models/GameRoom.ts
-import { Table as Table10, Column as Column10, Model as Model10, PrimaryKey as PrimaryKey10, DataType as DataType10, HasMany as HasMany2 } from "sequelize-typescript";
+var import_sequelize_typescript10 = require("sequelize-typescript");
 
 // src/models/LudoPlayer.ts
-import { Table as Table9, Column as Column9, Model as Model9, DataType as DataType9, ForeignKey as ForeignKey3, BelongsTo as BelongsTo3, PrimaryKey as PrimaryKey9 } from "sequelize-typescript";
-var LudoPlayer = class extends Model9 {
+var import_sequelize_typescript9 = require("sequelize-typescript");
+var LudoPlayer = class extends import_sequelize_typescript9.Model {
 };
 __decorateClass([
-  PrimaryKey9,
-  ForeignKey3(() => GameRoom),
-  Column9({
-    type: DataType9.STRING,
+  import_sequelize_typescript9.PrimaryKey,
+  (0, import_sequelize_typescript9.ForeignKey)(() => GameRoom),
+  (0, import_sequelize_typescript9.Column)({
+    type: import_sequelize_typescript9.DataType.STRING,
     allowNull: false
   })
 ], LudoPlayer.prototype, "room_id", 2);
 __decorateClass([
-  PrimaryKey9,
-  ForeignKey3(() => UserProfile),
-  Column9({
-    type: DataType9.STRING,
+  import_sequelize_typescript9.PrimaryKey,
+  (0, import_sequelize_typescript9.ForeignKey)(() => UserProfile),
+  (0, import_sequelize_typescript9.Column)({
+    type: import_sequelize_typescript9.DataType.STRING,
     allowNull: false
   })
 ], LudoPlayer.prototype, "user_id", 2);
 __decorateClass([
-  BelongsTo3(() => UserProfile)
+  (0, import_sequelize_typescript9.BelongsTo)(() => UserProfile)
 ], LudoPlayer.prototype, "user", 2);
 __decorateClass([
-  BelongsTo3(() => GameRoom)
+  (0, import_sequelize_typescript9.BelongsTo)(() => GameRoom)
 ], LudoPlayer.prototype, "gameRoom", 2);
 __decorateClass([
-  Column9({
-    type: DataType9.STRING,
+  (0, import_sequelize_typescript9.Column)({
+    type: import_sequelize_typescript9.DataType.STRING,
     allowNull: false
   })
 ], LudoPlayer.prototype, "username", 2);
 __decorateClass([
-  Column9({
-    type: DataType9.STRING,
+  (0, import_sequelize_typescript9.Column)({
+    type: import_sequelize_typescript9.DataType.STRING,
     allowNull: false
   })
 ], LudoPlayer.prototype, "avatar", 2);
 __decorateClass([
-  Column9({
-    type: DataType9.ENUM("red", "green", "yellow", "blue"),
+  (0, import_sequelize_typescript9.Column)({
+    type: import_sequelize_typescript9.DataType.ENUM("red", "green", "yellow", "blue"),
     allowNull: false
   })
 ], LudoPlayer.prototype, "color", 2);
 __decorateClass([
-  Column9({
-    type: DataType9.BOOLEAN,
+  (0, import_sequelize_typescript9.Column)({
+    type: import_sequelize_typescript9.DataType.BOOLEAN,
     allowNull: false,
     defaultValue: false
   })
 ], LudoPlayer.prototype, "is_host", 2);
 __decorateClass([
-  Column9({
-    type: DataType9.BOOLEAN,
+  (0, import_sequelize_typescript9.Column)({
+    type: import_sequelize_typescript9.DataType.BOOLEAN,
     allowNull: false,
     defaultValue: false
   })
 ], LudoPlayer.prototype, "is_ready", 2);
 __decorateClass([
-  Column9({
-    type: DataType9.ENUM("online", "offline", "left"),
+  (0, import_sequelize_typescript9.Column)({
+    type: import_sequelize_typescript9.DataType.ENUM("online", "offline", "left"),
     allowNull: false,
     defaultValue: "online"
   })
 ], LudoPlayer.prototype, "status", 2);
 __decorateClass([
-  Column9({
-    type: DataType9.INTEGER,
+  (0, import_sequelize_typescript9.Column)({
+    type: import_sequelize_typescript9.DataType.INTEGER,
     allowNull: true
   })
 ], LudoPlayer.prototype, "inactivityTimer", 2);
 LudoPlayer = __decorateClass([
-  Table9({
+  (0, import_sequelize_typescript9.Table)({
     tableName: "game_players",
     timestamps: false
   })
 ], LudoPlayer);
 
 // src/models/GameRoom.ts
-var GameRoom = class extends Model10 {
+var GameRoom = class extends import_sequelize_typescript10.Model {
 };
 __decorateClass([
-  PrimaryKey10,
-  Column10({
-    type: DataType10.STRING,
+  import_sequelize_typescript10.PrimaryKey,
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.STRING,
     allowNull: false
   })
 ], GameRoom.prototype, "id", 2);
 __decorateClass([
-  Column10({
-    type: DataType10.ENUM("waiting", "playing", "completed", "cancelled"),
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.ENUM("waiting", "playing", "completed", "cancelled"),
     allowNull: false
   })
 ], GameRoom.prototype, "status", 2);
 __decorateClass([
-  Column10({
-    type: DataType10.DECIMAL(10, 2),
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.DECIMAL(10, 2),
     allowNull: false
   })
 ], GameRoom.prototype, "betAmount", 2);
 __decorateClass([
-  HasMany2(() => LudoPlayer)
+  (0, import_sequelize_typescript10.HasMany)(() => LudoPlayer)
 ], GameRoom.prototype, "players", 2);
 __decorateClass([
-  Column10({
-    type: DataType10.JSON,
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.JSON,
     allowNull: true
   })
 ], GameRoom.prototype, "spectators", 2);
 __decorateClass([
-  Column10({
-    type: DataType10.JSON,
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.JSON,
     allowNull: false
   })
 ], GameRoom.prototype, "gameState", 2);
 __decorateClass([
-  Column10({
-    type: DataType10.DATE,
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.DATE,
     allowNull: false
   })
 ], GameRoom.prototype, "createdAt", 2);
 __decorateClass([
-  Column10({
-    type: DataType10.INTEGER,
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.INTEGER,
     allowNull: true
   })
 ], GameRoom.prototype, "capacity", 2);
 __decorateClass([
-  Column10({
-    type: DataType10.ENUM("solo", "team"),
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.ENUM("solo", "team"),
     allowNull: true
   })
 ], GameRoom.prototype, "gameMode", 2);
 __decorateClass([
-  HasMany2(() => LudoPlayer)
+  (0, import_sequelize_typescript10.HasMany)(() => LudoPlayer)
 ], GameRoom.prototype, "pendingPlayers", 2);
 __decorateClass([
-  Column10({
-    type: DataType10.STRING,
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.STRING,
     allowNull: true
   })
 ], GameRoom.prototype, "rejectionReason", 2);
 __decorateClass([
-  Column10({
-    type: DataType10.JSON,
+  (0, import_sequelize_typescript10.Column)({
+    type: import_sequelize_typescript10.DataType.JSON,
     allowNull: true
   })
 ], GameRoom.prototype, "tournamentDetails", 2);
 GameRoom = __decorateClass([
-  Table10({
+  (0, import_sequelize_typescript10.Table)({
     tableName: "game_rooms",
     timestamps: true
   })
 ], GameRoom);
 
 // src/models/LudoToken.ts
-import { Table as Table12, Column as Column12, Model as Model12, PrimaryKey as PrimaryKey11, DataType as DataType12, ForeignKey as ForeignKey5, BelongsTo as BelongsTo5 } from "sequelize-typescript";
+var import_sequelize_typescript12 = require("sequelize-typescript");
 
 // src/models/GameState.ts
-import { Table as Table11, Column as Column11, Model as Model11, DataType as DataType11, HasMany as HasMany3, ForeignKey as ForeignKey4, BelongsTo as BelongsTo4 } from "sequelize-typescript";
-var GameState = class extends Model11 {
+var import_sequelize_typescript11 = require("sequelize-typescript");
+var GameState = class extends import_sequelize_typescript11.Model {
 };
 __decorateClass([
-  ForeignKey4(() => GameRoom),
-  Column11({
-    type: DataType11.STRING,
+  (0, import_sequelize_typescript11.ForeignKey)(() => GameRoom),
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.STRING,
     allowNull: false,
     primaryKey: true
   })
 ], GameState.prototype, "gameRoomId", 2);
 __decorateClass([
-  BelongsTo4(() => GameRoom)
+  (0, import_sequelize_typescript11.BelongsTo)(() => GameRoom)
 ], GameState.prototype, "gameRoom", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.INTEGER,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.INTEGER,
     allowNull: false
   })
 ], GameState.prototype, "turn", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.INTEGER,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.INTEGER,
     allowNull: true
   })
 ], GameState.prototype, "diceRoll", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.INTEGER,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.INTEGER,
     allowNull: true
   })
 ], GameState.prototype, "lastDiceRoll", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.BOOLEAN,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.BOOLEAN,
     allowNull: false
   })
 ], GameState.prototype, "hasRolled", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.INTEGER,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.INTEGER,
     allowNull: false
   })
 ], GameState.prototype, "turnTimer", 2);
 __decorateClass([
-  HasMany3(() => LudoToken)
+  (0, import_sequelize_typescript11.HasMany)(() => LudoToken)
 ], GameState.prototype, "tokens", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.STRING,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.STRING,
     allowNull: true
   })
 ], GameState.prototype, "winnerId", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.ENUM("forfeit", "inactivity", "all_tokens_home"),
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.ENUM("forfeit", "inactivity", "all_tokens_home"),
     allowNull: true
   })
 ], GameState.prototype, "completionReason", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.STRING,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.STRING,
     allowNull: true
   })
 ], GameState.prototype, "endReasonText", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.DECIMAL(10, 2),
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.DECIMAL(10, 2),
     allowNull: false
   })
 ], GameState.prototype, "escrowBalance", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.JSON,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.JSON,
     allowNull: false
   })
 ], GameState.prototype, "logs", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.JSON,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.JSON,
     allowNull: false
   })
 ], GameState.prototype, "chat", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.DATE,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.DATE,
     allowNull: false
   })
 ], GameState.prototype, "lastActivity", 2);
 __decorateClass([
-  Column11({
-    type: DataType11.INTEGER,
+  (0, import_sequelize_typescript11.Column)({
+    type: import_sequelize_typescript11.DataType.INTEGER,
     allowNull: true
   })
 ], GameState.prototype, "consecutiveSixes", 2);
 GameState = __decorateClass([
-  Table11({
+  (0, import_sequelize_typescript11.Table)({
     tableName: "game_states",
     timestamps: false
   })
 ], GameState);
 
 // src/models/LudoToken.ts
-var LudoToken = class extends Model12 {
+var LudoToken = class extends import_sequelize_typescript12.Model {
 };
 __decorateClass([
-  PrimaryKey11,
-  Column12({
-    type: DataType12.STRING,
+  import_sequelize_typescript12.PrimaryKey,
+  (0, import_sequelize_typescript12.Column)({
+    type: import_sequelize_typescript12.DataType.STRING,
     allowNull: false
   })
 ], LudoToken.prototype, "id", 2);
 __decorateClass([
-  ForeignKey5(() => GameState),
-  Column12({
-    type: DataType12.STRING,
+  (0, import_sequelize_typescript12.ForeignKey)(() => GameState),
+  (0, import_sequelize_typescript12.Column)({
+    type: import_sequelize_typescript12.DataType.STRING,
     allowNull: false
   })
 ], LudoToken.prototype, "gameStateId", 2);
 __decorateClass([
-  BelongsTo5(() => GameState)
+  (0, import_sequelize_typescript12.BelongsTo)(() => GameState)
 ], LudoToken.prototype, "gameState", 2);
 __decorateClass([
-  ForeignKey5(() => UserProfile),
-  Column12({
-    type: DataType12.STRING,
+  (0, import_sequelize_typescript12.ForeignKey)(() => UserProfile),
+  (0, import_sequelize_typescript12.Column)({
+    type: import_sequelize_typescript12.DataType.STRING,
     allowNull: false
   })
 ], LudoToken.prototype, "ownerId", 2);
 __decorateClass([
-  BelongsTo5(() => UserProfile)
+  (0, import_sequelize_typescript12.BelongsTo)(() => UserProfile)
 ], LudoToken.prototype, "owner", 2);
 __decorateClass([
-  Column12({
-    type: DataType12.ENUM("red", "green", "yellow", "blue"),
+  (0, import_sequelize_typescript12.Column)({
+    type: import_sequelize_typescript12.DataType.ENUM("red", "green", "yellow", "blue"),
     allowNull: false
   })
 ], LudoToken.prototype, "color", 2);
 __decorateClass([
-  Column12({
-    type: DataType12.INTEGER,
+  (0, import_sequelize_typescript12.Column)({
+    type: import_sequelize_typescript12.DataType.INTEGER,
     allowNull: false
   })
 ], LudoToken.prototype, "position", 2);
 LudoToken = __decorateClass([
-  Table12({
+  (0, import_sequelize_typescript12.Table)({
     tableName: "ludo_tokens",
     timestamps: false
   })
 ], LudoToken);
 
 // src/sequelize.ts
-dotenv.config();
-var sequelize = new Sequelize(
+import_dotenv.default.config();
+var sequelize = new import_sequelize_typescript13.Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
   process.env.DB_PASSWORD,
@@ -730,7 +760,8 @@ var sequelize = new Sequelize(
       MatchmakingModel,
       GameRoom,
       LudoPlayer,
-      LudoToken
+      LudoToken,
+      GameState
     ]
   }
 );
@@ -1256,7 +1287,7 @@ var VIP_TIERS = {
     features: ["All Gold features", "Unique animated avatars", "5% Rake Discount", "Early access to new game modes"]
   }
 };
-var app = express();
+var app = (0, import_express.default)();
 var configuredAllowedOrigins = [
   process.env.VITE_APP_URL,
   process.env.PUBLIC_URL,
@@ -1277,16 +1308,16 @@ var allowedOrigins = Array.from(/* @__PURE__ */ new Set([
   "http://127.0.0.1:5173",
   ...configuredAllowedOrigins
 ]));
-app.use(cors({
+app.use((0, import_cors.default)({
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 var PORT = Number(process.env.PORT) || 3002;
-var DB_FILE = path.join(process.cwd(), "_store.json");
-app.use(express.json());
-app.use(express.static(path.join(process.cwd(), "public")));
+var DB_FILE = import_path.default.join(process.cwd(), "_store.json");
+app.use(import_express.default.json());
+app.use(import_express.default.static(import_path.default.join(process.cwd(), "public")));
 var DEFAULT_PAYMENT_PROVIDERS = {
   evc: { enabled: false },
   edahab: { enabled: false },
@@ -1326,7 +1357,7 @@ var store = {
 async function saveStoreAndWait() {
   try {
     if (!(process.env.FUNCTION_TARGET || process.env.FUNCTIONS_EMULATOR)) {
-      fs.writeFileSync(DB_FILE, JSON.stringify(store, null, 2), "utf8");
+      import_fs.default.writeFileSync(DB_FILE, JSON.stringify(store, null, 2), "utf8");
     }
     return { success: true };
   } catch (error) {
@@ -3487,7 +3518,7 @@ app.get("*", (req, res, next) => {
   if (req.originalUrl.startsWith("/api")) {
     return next();
   }
-  res.sendFile(path.join(process.cwd(), "dist", "index.html"));
+  res.sendFile(import_path.default.join(process.cwd(), "dist", "index.html"));
 });
 var api = app;
 if (!(process.env.FUNCTION_TARGET || process.env.FUNCTIONS_EMULATOR)) {
@@ -3496,9 +3527,10 @@ if (!(process.env.FUNCTION_TARGET || process.env.FUNCTIONS_EMULATOR)) {
     console.log(`Server is listening on port ${PORT2}`);
   });
 }
-export {
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
   api
-};
+});
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
