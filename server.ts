@@ -33,6 +33,7 @@ import { GameState as GameStateModel } from './src/models/GameState';
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -264,22 +265,26 @@ function loadStore() {
 
 // Slower, awaited version for critical updates
 async function saveStoreAndWait(): Promise<{ success: boolean; error?: string }> {
-    // This function is now deprecated as we are moving to a fully database-driven approach.
-    // It will be removed in a future refactoring.
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(store, null, 2));
     return { success: true };
+  } catch (error: any) {
+    console.error('!!! CRITICAL: Failed to save database to disk !!!', error);
+    return { success: false, error: error.message };
+  }
 }
 
-// // loadStore(); // DEPRECATED: We now rely on the SQL database as the source of truth.
+loadStore(); // DEPRECATED: We now rely on the SQL database as the source of truth.
 
 // Sync all models with the database
-(async () => {
-  try {
-    await sequelize.sync();
-    console.log('All models were synchronized successfully.');
-  } catch (error) {
-    console.error('An error occurred while synchronizing the models:', error);
-  }
-})();
+// (async () => {
+//   try {
+//     await sequelize.sync();
+//     console.log('All models were synchronized successfully.');
+//   } catch (error) {
+//     console.error('An error occurred while synchronizing the models:', error);
+//   }
+// })();
 
 // ==========================================
 // PURGE SIMULATED USERS TO KEEP ONLY REAL REGISTERED USER SESSIONS ON THE RADAR
@@ -544,7 +549,7 @@ function advanceTurn(room: GameRoom) {
 
 // Add a transaction helper
 async function addTransaction(userId: string, type: WalletTransaction['type'], amount: number, matchId?: string, description = '') {
-  const tx: WalletTransaction = {
+  const txData = {
     id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
     userId,
     type,
@@ -554,13 +559,10 @@ async function addTransaction(userId: string, type: WalletTransaction['type'], a
     description
   };
 
-  // For backward compatibility, also add to the in-memory store
-  store.transactions.unshift(tx);
-  
-  // The call to saveStore() is often redundant if the calling function calls saveStoreAndWait()
-  // but we'll leave it for now to be safe during the transition.
+  // Use the createTransaction function from our new database.ts file
+  const newTransaction = await createTransaction(txData);
    
-  return tx;
+  return newTransaction;
 }
 
 
@@ -913,6 +915,7 @@ app.post('/api/auth/login', async (req: any, res) => {
   const firebaseUser = req.user; // Decoded token
 
   try {
+    // Check if user already exists in our database
     let user = await getUserByFirebaseUid(firebaseUid);
 
     // 1. If user exists, return it
@@ -936,9 +939,8 @@ app.post('/api/auth/login', async (req: any, res) => {
     const cleanUsername = finalUsername.trim().substring(0, 20);
 
     let linkedAgentId: string | undefined = undefined;
-    let agent: Agent | null = null;
     if (promoCode && typeof promoCode === 'string' && promoCode.trim() !== '') {
-      agent = await getAgentByPromoCode(promoCode.trim());
+      const agent = await getAgentByPromoCode(promoCode.trim());
       if (!agent) {
         return res.status(400).json({ error: 'Invalid or expired promo code.' });
       }
@@ -946,7 +948,7 @@ app.post('/api/auth/login', async (req: any, res) => {
     }
     
     const newId = firebaseUid; 
-    const newUser: UserProfile = {
+    const newUserPayload: Partial<UserProfile> = {
       id: newId,
       firebaseUid: firebaseUid,
       username: cleanUsername,
@@ -960,14 +962,10 @@ app.post('/api/auth/login', async (req: any, res) => {
       createdAt: Date.now(),
     };
 
-    await createUser(newUser);
+    const newUser = await createUser(newUserPayload);
     
-    addTransaction(newId, 'deposit', 10.0, undefined, 'Welcome signup bonus.');
-
-    if (agent && linkedAgentId) {
-        await linkAgentToPlayer(linkedAgentId, newId);
-    }
-
+    await addTransaction(newId, 'deposit', 10.0, undefined, 'Welcome signup bonus.');
+    
     res.status(201).json(newUser);
 
   } catch (error) {
@@ -989,7 +987,7 @@ app.get('/api/users/:userId', async (req, res, next) => {
     }
     res.json(user);
   } catch (error) {
-    console.error("Failed to get user from database:", error);
+    console.error(`Failed to get user from database for ID ${req.params.userId}:`, error);
     res.status(500).json({ error: "Failed to retrieve user." });
   }
 });
@@ -997,16 +995,11 @@ app.get('/api/users/:userId', async (req, res, next) => {
 // Update profile
 app.post('/api/users/:userId/update', async (req: any, res) => {
     const userIdToUpdate = req.params.userId;
-    if (req.user.uid !== userIdToUpdate) {
+    if (req.user.id !== userIdToUpdate) {
         return res.status(403).json({ error: 'You are not authorized to update this profile.' });
     }
 
     try {
-        const user = await getUserById(userIdToUpdate);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
         const { username, avatar, isOfflinePreference } = req.body;
         const updateData: Partial<UserProfile> = {};
 
@@ -1017,7 +1010,7 @@ app.post('/api/users/:userId/update', async (req: any, res) => {
         if (Object.keys(updateData).length > 0) {
             await updateUser(userIdToUpdate, updateData);
         }
-
+        
         const updatedUser = await getUserById(userIdToUpdate);
 
         await broadcastUserUpdate(userIdToUpdate);
@@ -1063,27 +1056,17 @@ app.post('/api/wallet/deposit', async (req, res) => {
   }
 
   try {
-    const user = await getUserById(userId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    const newBalance = user.balance + depAmt;
-    await updateUser(userId, { balance: newBalance });
-
-    const tx: WalletTransaction = {
-      id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      userId,
-      type: 'deposit',
-      amount: depAmt,
-      timestamp: Date.now(),
-      description: `Deposited funds via Simulated Net Banking.`,
-    };
-    await createTransaction(tx);
-
+    const updatedUser = await depositToPlayerWallet(userId, depAmt, 'Deposited funds via Simulated Net Banking.');
+    
     await broadcastUserUpdate(userId);
 
-    res.json({ success: true, balance: newBalance });
+    res.json({ success: true, balance: updatedUser.balance });
   } catch (error) {
     console.error('Error during deposit:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    if (errorMessage.includes('User not found')) {
+        return res.status(404).json({ error: errorMessage });
+    }
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
 });
@@ -1101,31 +1084,17 @@ app.post('/api/wallet/withdraw', async (req, res) => {
   }
 
   try {
-    const user = await getUserById(userId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    if (user.balance < withAmt) {
-      return res.status(400).json({ error: 'Insufficient funds' });
-    }
-
-    const newBalance = user.balance - withAmt;
-    await updateUser(userId, { balance: newBalance });
-
-    const tx: WalletTransaction = {
-      id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      userId,
-      type: 'withdrawal',
-      amount: withAmt,
-      timestamp: Date.now(),
-      description: `Withdrawn funds to bank account.`,
-    };
-    await createTransaction(tx);
-
+    const updatedUser = await withdrawFromPlayerWallet(userId, withAmt, 'Withdrawn funds to bank account.');
+    
     await broadcastUserUpdate(userId);
 
-    res.json({ success: true, balance: newBalance });
+    res.json({ success: true, balance: updatedUser.balance });
   } catch (error) {
     console.error('Error during withdrawal:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    if (errorMessage.includes('User not found') || errorMessage.includes('Insufficient funds')) {
+        return res.status(400).json({ error: errorMessage });
+    }
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
 });
@@ -1179,7 +1148,7 @@ app.post('/api/wallet/request-manual-confirmation', async (req, res) => {
 app.get('/api/wallet/transactions/:userId', async (req: any, res) => {
   const userId = req.params.userId;
   // Security check: Ensure the authenticated user is requesting their own transactions
-  if (req.user.uid !== userId) {
+  if (req.user.id !== userId) {
       return res.status(403).json({ error: 'You are not authorized to view these transactions.' });
   }
 
@@ -2733,8 +2702,9 @@ app.get('/api/admin/stats', isAdmin, (req, res) => {
 });
 
 // Get all users
-app.get('/api/admin/users', isAdmin, (req, res) => {
-    res.json(Object.values(store.users));
+app.get('/api/admin/users', isAdmin, async (req, res) => {
+    const users = await getAllUsers();
+    res.json(users);
 });
 
 // Get all rooms
@@ -2743,8 +2713,9 @@ app.get('/api/admin/rooms', isAdmin, (req, res) => {
 });
 
 // Get all transactions
-app.get('/api/admin/transactions', isAdmin, (req, res) => {
-    res.json(store.transactions);
+app.get('/api/admin/transactions', isAdmin, async (req, res) => {
+    const transactions = await getAllTransactions();
+    res.json(transactions);
 });
 
 // Get all pending manual transactions
