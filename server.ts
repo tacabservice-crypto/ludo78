@@ -2998,7 +2998,7 @@ app.post('/api/admin/rooms/:roomId/cancel', isAdmin, async (req, res) => {
 });
 
 // Toggle admin rights for a user
-app.post('/api/admin/users/:userId/toggle-admin', isAdmin, (req, res) => {
+app.post('/api/admin/users/:userId/toggle-admin', isAdmin, async (req, res) => {
     const { userId } = req.params;
     const user = store.users[userId];
     if (!user) {
