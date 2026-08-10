@@ -62,11 +62,23 @@ export default function AuthScreen({ onLoginSuccess, initialError }: AuthScreenP
         }),
       });
 
-      const profileData = await response.json();
+      const text = await response.text();
 
       if (!response.ok) {
-        throw new Error(profileData.error || 'Failed to sync with server.');
+        // Try to parse the error text as JSON, but fall back to the raw text if it fails
+        let errorMessage = `API error ${response.status}: ${text.slice(0, 200)}`;
+        try {
+          const errorJson = JSON.parse(text);
+          if (errorJson.error) {
+            errorMessage = errorJson.error;
+          }
+        } catch (e) {
+          // It's not JSON, so we use the raw text we already have
+        }
+        throw new Error(errorMessage);
       }
+
+      const profileData = JSON.parse(text);
       
       onLoginSuccess(profileData, token);
 
