@@ -39,6 +39,7 @@ import cors from 'cors';
 import path from 'path';
 import { createServer as createViteServer, ViteDevServer } from 'vite';
 import sequelize from './src/sequelize';
+import { auth } from './src/firebase';
 
 import {
   getUserByFirebaseUid,
@@ -779,6 +780,31 @@ setInterval(async () => {
 // 4. API ENDPOINTS
 // ==========================================
 
+const firebaseAuthMiddleware = async (req: any, res: any, next: () => void) => {
+  const { authorization } = req.headers;
+
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized: Missing or invalid Authorization header.' });
+  }
+
+  const token = authorization.split('Bearer ')[1];
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized: Missing token.' });
+  }
+
+  try {
+    if (!auth) {
+      throw new Error('Firebase Admin Auth is not initialized.');
+    }
+    const decodedToken = await auth.verifyIdToken(token);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    console.error('Error verifying Firebase ID token:', error);
+    return res.status(403).json({ error: 'Unauthorized: Invalid token.' });
+  }
+};
+
 const authMiddleware = async (req: any, res: any, next: () => void) => {
     const userId = req.headers['x-user-id'] as string; // Or however you pass the user ID
 
@@ -909,7 +935,7 @@ data: ${JSON.stringify(seekingData)}
 });
 
 // Authentication / Session
-app.post('/api/auth/login', async (req: any, res) => {
+app.post('/api/auth/login', firebaseAuthMiddleware, async (req: any, res) => {
   const { username, email, avatar, promoCode } = req.body;
   const firebaseUid = req.user.uid;
   const firebaseUser = req.user; // Decoded token
