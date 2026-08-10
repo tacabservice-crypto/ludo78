@@ -32,4 +32,11 @@ try {
 }
 
 export const db = admin.apps.length > 0 ? admin.firestore() : null;
-export const auth = admin.apps.length > 0 ? admin.auth() : null;
+
+export function getAuth() {
+  if (admin.apps.length === 0) {
+    console.warn('Firebase Admin SDK is not initialized. Auth operations will fail.');
+    return null;
+  }
+  return admin.auth();
+}

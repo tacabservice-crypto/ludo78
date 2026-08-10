@@ -39,7 +39,7 @@ import cors from 'cors';
 import path from 'path';
 import { createServer as createViteServer, ViteDevServer } from 'vite';
 import sequelize from './src/sequelize';
-import { auth } from './src/firebase';
+import { getAuth } from './src/firebase';
 
 import {
   getUserByFirebaseUid,
@@ -793,6 +793,7 @@ const firebaseAuthMiddleware = async (req: any, res: any, next: () => void) => {
   }
 
   try {
+    const auth = getAuth();
     if (!auth) {
       throw new Error('Firebase Admin Auth is not initialized.');
     }
